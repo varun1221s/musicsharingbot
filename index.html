@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music sharing test bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For My Favorite Human</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -17,33 +17,56 @@
             width: 100%; height: 100%;
             overflow: hidden;
             background-color: var(--bg);
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex; align-items: center; justify-content: center;
+            -webkit-touch-callout: none;
         }
 
         /* Heart Trail Canvas */
         #heartCanvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1; }
 
-        /* Main UI (Hidden until password) */
+        /* Main UI */
         #main-ui {
             display: none;
             position: relative; z-index: 10;
-            text-align: center; padding: 40px;
+            text-align: center; padding: 20px;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 80%;
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 85%;
+            max-width: 400px;
         }
 
-        h1 { font-size: clamp(2rem, 5vw, 4rem); color: white; margin-bottom: 2rem; text-shadow: 0 0 20px rgba(255, 10, 84, 0.5); }
-        .button-wrapper { position: relative; display: inline-flex; gap: 50px; min-width: 400px; justify-content: center; }
+        h1 { 
+            font-size: clamp(1.5rem, 6vw, 2.5rem); 
+            color: white; margin-bottom: 2rem; 
+            text-shadow: 0 0 15px rgba(255, 10, 84, 0.5); 
+            line-height: 1.2;
+        }
+
+        .button-wrapper { 
+            position: relative; 
+            display: flex; 
+            flex-direction: row; 
+            gap: 20px; 
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Mobile specific button adjustment */
+        @media (max-width: 600px) {
+            .button-wrapper { flex-direction: column; min-width: unset; }
+            .btn { width: 100%; max-width: 200px; }
+        }
 
         .btn {
-            padding: 20px 50px; font-size: 1.8rem; border: none; border-radius: 15px;
+            padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 12px;
             cursor: pointer; font-weight: 800; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            touch-action: manipulation;
         }
 
-        #yesBtn { background: var(--heart-red); color: white; box-shadow: 0 0 30px rgba(255, 10, 84, 0.6); }
+        #yesBtn { background: var(--heart-red); color: white; box-shadow: 0 0 20px rgba(255, 10, 84, 0.4); }
         #noBtn { background: #ffffff; color: #333; }
 
         /* Theatre Section */
@@ -51,18 +74,37 @@
             display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 100; flex-direction: column;
-            align-items: center; justify-content: center;
+            align-items: center; justify-content: flex-start;
+            padding-top: 40px;
             background: radial-gradient(circle, #2b0213 0%, #0b010d 100%);
-            animation: fadeIn 1s forwards;
+            overflow-y: auto; /* Allows scrolling on small phones if content is too tall */
+            -webkit-overflow-scrolling: touch;
         }
 
-        .photo-container { display: flex; gap: 30px; perspective: 1000px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
-        .polaroid { width: 240px; background: white; padding: 15px 15px 40px 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: rotate(-3deg); animation: float 4s ease-in-out infinite alternate; }
-        .polaroid img { width: 100%; height: 300px; object-fit: cover; background: #eee; }
-        .polaroid:nth-child(even) { transform: rotate(5deg); animation-delay: 0.8s; }
+        .photo-container { 
+            display: flex; gap: 15px; 
+            perspective: 1000px; flex-wrap: wrap; 
+            justify-content: center; margin-top: 20px; 
+            padding: 20px;
+        }
 
-        @keyframes float { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-25px) rotate(3deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
+        .polaroid { 
+            width: 140px; /* Smaller for mobile */
+            background: white; padding: 8px 8px 25px 8px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            transform: rotate(-3deg); 
+            animation: float 4s ease-in-out infinite alternate; 
+        }
+
+        @media (min-width: 600px) {
+            .polaroid { width: 200px; padding: 12px 12px 35px 12px; }
+        }
+
+        .polaroid img { width: 100%; height: auto; aspect-ratio: 3/4; object-fit: cover; background: #eee; }
+        .polaroid:nth-child(even) { transform: rotate(4deg); animation-delay: 0.8s; }
+
+        @keyframes float { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-15px) rotate(2deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -78,70 +120,66 @@
     </div>
 
     <div id="theatre">
-        <h1 style="color: var(--text-gold); font-size: 4rem;">i love you Ishita muah ❤️</h1>
+        <h1 style="color: var(--text-gold); font-size: clamp(1.8rem, 8vw, 3.5rem); text-align: center; padding: 0 10px;">i love you Ishita muah ❤️</h1>
         <div class="photo-container">
             <div class="polaroid"><img src="IMG_0532.jpg"></div>
             <div class="polaroid"><img src="IMG_0715.jpg"></div>
             <div class="polaroid"><img src="IMG_1434.jpg"></div>
         </div>
-        <p style="color: white; margin-top: 40px; font-size: 1.5rem; letter-spacing: 2px;">Ty for giving me the opportunity to love you!</p>
+        <p style="color: white; margin-top: 20px; font-size: 1.1rem; text-align: center; padding: 0 20px; opacity: 0.8;">Ty for giving me the opportunity to love you!</p>
     </div>
 
     <script>
-        // --- PASSWORD LOGIC WITH HINT ---
         let attempts = 0;
         const correctPassword = "cococolastic";
 
         function checkPassword() {
             let userPass = prompt("Enter the secret code to enter:");
-            
-            if (userPass === null) return; // Exit if they hit cancel
-
+            if (userPass === null) return;
             if (userPass.toLowerCase().trim() === correctPassword) {
                 document.getElementById('main-ui').style.display = 'block';
             } else {
                 attempts++;
-                if (attempts >= 3) {
-                    alert("Incorrect. Hint: fantastic!");
-                } else {
-                    alert("Wrong password. Try again!");
-                }
-                checkPassword(); // Re-prompt
+                alert(attempts >= 3 ? "Incorrect. Hint: fantastic!" : "Wrong password. Try again!");
+                checkPassword();
             }
         }
 
-        // Run password check on load
         window.onload = checkPassword;
 
-        // --- BUTTON LOGIC ---
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const btnContainer = document.getElementById('btnContainer');
 
-        noBtn.addEventListener('mouseenter', () => {
-            const currentDir = window.getComputedStyle(btnContainer).flexDirection;
-            btnContainer.style.flexDirection = currentDir === 'row' ? 'row-reverse' : 'row';
-            yesBtn.style.transform = 'scale(1.2)';
-            setTimeout(() => { yesBtn.style.transform = 'scale(1)'; }, 200);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevents iPhone zoom/scrolling while trying to tap
+            swapButtons();
         });
+
+        noBtn.addEventListener('mouseenter', swapButtons);
+
+        function swapButtons() {
+            const currentDir = window.getComputedStyle(btnContainer).flexDirection;
+            btnContainer.style.flexDirection = currentDir.includes('row') ? 
+                (currentDir === 'row' ? 'row-reverse' : 'row') : 
+                (currentDir === 'column' ? 'column-reverse' : 'column');
+            
+            yesBtn.style.transform = 'scale(1.1)';
+            setTimeout(() => { yesBtn.style.transform = 'scale(1)'; }, 200);
+        }
 
         yesBtn.addEventListener('click', () => {
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('theatre').style.display = 'flex';
             
-            let duration = 15 * 1000;
-            let animationEnd = Date.now() + duration;
-            let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
-
-            let interval = setInterval(function() {
-                let timeLeft = animationEnd - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-                let particleCount = 50 * (timeLeft / duration);
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
-            }, 250);
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff0a54', '#ffffff', '#ffbd00']
+            });
         });
 
-        // --- HEART TRAIL ---
         const canvas = document.getElementById('heartCanvas');
         const ctx = canvas.getContext('2d');
         let hearts = [];
@@ -151,12 +189,12 @@
         class Heart {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.size = Math.random() * 15 + 8;
+                this.size = Math.random() * 10 + 10;
                 this.speedX = Math.random() * 2 - 1;
-                this.speedY = Math.random() * -3 - 1;
+                this.speedY = Math.random() * -2 - 1;
                 this.opacity = 1;
             }
-            update() { this.x += this.speedX; this.y += this.speedY; this.opacity -= 0.01; }
+            update() { this.x += this.speedX; this.y += this.speedY; this.opacity -= 0.015; }
             draw() {
                 ctx.fillStyle = `rgba(255, 10, 84, ${this.opacity})`;
                 ctx.font = `${this.size}px serif`;
@@ -164,9 +202,14 @@
             }
         }
 
-        window.addEventListener('mousemove', (e) => {
-            if (Math.random() > 0.7) hearts.push(new Heart(e.clientX, e.clientY));
-        });
+        const handleMove = (e) => {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            if (Math.random() > 0.8) hearts.push(new Heart(x, y));
+        };
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove);
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
