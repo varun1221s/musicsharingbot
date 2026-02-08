@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Favorite Human</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b010d;
+            --heart-red: #ff0a54;
+            --text-gold: #ffbd00;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Heart Trail Canvas */
+        #heartCanvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1; }
+
+        /* Main UI (Hidden until password) */
+        #main-ui {
+            display: none;
+            position: relative; z-index: 10;
+            text-align: center; padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 80%;
+        }
+
+        h1 { font-size: clamp(2rem, 5vw, 4rem); color: white; margin-bottom: 2rem; text-shadow: 0 0 20px rgba(255, 10, 84, 0.5); }
+        .button-wrapper { position: relative; display: inline-flex; gap: 50px; min-width: 400px; justify-content: center; }
+
+        .btn {
+            padding: 20px 50px; font-size: 1.8rem; border: none; border-radius: 15px;
+            cursor: pointer; font-weight: 800; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #yesBtn { background: var(--heart-red); color: white; box-shadow: 0 0 30px rgba(255, 10, 84, 0.6); }
+        #noBtn { background: #ffffff; color: #333; }
+
+        /* Theatre Section */
+        #theatre {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 100; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: radial-gradient(circle, #2b0213 0%, #0b010d 100%);
+            animation: fadeIn 1s forwards;
+        }
+
+        .photo-container { display: flex; gap: 30px; perspective: 1000px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+        .polaroid { width: 240px; background: white; padding: 15px 15px 40px 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: rotate(-3deg); animation: float 4s ease-in-out infinite alternate; }
+        .polaroid img { width: 100%; height: 300px; object-fit: cover; background: #eee; }
+        .polaroid:nth-child(even) { transform: rotate(5deg); animation-delay: 0.8s; }
+
+        @keyframes float { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-25px) rotate(3deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <canvas id="heartCanvas"></canvas>
+
+    <div id="main-ui">
+        <h1>Will you be my Valentine? <br>Please say yes</h1>
+        <div class="button-wrapper" id="btnContainer">
+            <button class="btn" id="yesBtn">YES</button>
+            <button class="btn" id="noBtn">NO</button>
+        </div>
+    </div>
+
+    <div id="theatre">
+        <h1 style="color: var(--text-gold); font-size: 4rem;">i love you Ishita muah ❤️</h1>
+        <div class="photo-container">
+            <div class="polaroid"><img src="IMG_0532.jpg"></div>
+            <div class="polaroid"><img src="IMG_0715.jpg"></div>
+            <div class="polaroid"><img src="IMG_1434.jpg"></div>
+        </div>
+        <p style="color: white; margin-top: 40px; font-size: 1.5rem; letter-spacing: 2px;">Ty for giving me the opportunity to love you!</p>
+    </div>
+
+    <script>
+        // --- PASSWORD LOGIC WITH HINT ---
+        let attempts = 0;
+        const correctPassword = "cococolastic";
+
+        function checkPassword() {
+            let userPass = prompt("Enter the secret code to enter:");
+            
+            if (userPass === null) return; // Exit if they hit cancel
+
+            if (userPass.toLowerCase().trim() === correctPassword) {
+                document.getElementById('main-ui').style.display = 'block';
+            } else {
+                attempts++;
+                if (attempts >= 3) {
+                    alert("Incorrect. Hint: fantastic!");
+                } else {
+                    alert("Wrong password. Try again!");
+                }
+                checkPassword(); // Re-prompt
+            }
+        }
+
+        // Run password check on load
+        window.onload = checkPassword;
+
+        // --- BUTTON LOGIC ---
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const btnContainer = document.getElementById('btnContainer');
+
+        noBtn.addEventListener('mouseenter', () => {
+            const currentDir = window.getComputedStyle(btnContainer).flexDirection;
+            btnContainer.style.flexDirection = currentDir === 'row' ? 'row-reverse' : 'row';
+            yesBtn.style.transform = 'scale(1.2)';
+            setTimeout(() => { yesBtn.style.transform = 'scale(1)'; }, 200);
+        });
+
+        yesBtn.addEventListener('click', () => {
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('theatre').style.display = 'flex';
+            
+            let duration = 15 * 1000;
+            let animationEnd = Date.now() + duration;
+            let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+
+            let interval = setInterval(function() {
+                let timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                let particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+            }, 250);
+        });
+
+        // --- HEART TRAIL ---
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Heart {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.size = Math.random() * 15 + 8;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * -3 - 1;
+                this.opacity = 1;
+            }
+            update() { this.x += this.speedX; this.y += this.speedY; this.opacity -= 0.01; }
+            draw() {
+                ctx.fillStyle = `rgba(255, 10, 84, ${this.opacity})`;
+                ctx.font = `${this.size}px serif`;
+                ctx.fillText('❤️', this.x, this.y);
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.7) hearts.push(new Heart(e.clientX, e.clientY));
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < hearts.length; i++) {
+                hearts[i].update();
+                hearts[i].draw();
+                if (hearts[i].opacity <= 0) { hearts.splice(i, 1); i--; }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
